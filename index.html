@@ -1,1 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+  />
 
+  <title>Pk CloneX Team</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg: #0b0f14;
+      --panel: #111720;
+      --panel2: #171e28;
+      --border: #242d38;
+      --text: #f5f7fa;
+      --muted: #8c98a6;
+      --accent: #20a96b;
+      --accent-dark: #168452;
+      --user: #183c31;
+      --assistant: #151c25;
+      --danger: #ef5350;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+      overflow: hidden;
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .topbar {
+      height: 62px;
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(11, 15, 20, 0.96);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--accent);
+      color: white;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .brand-name {
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .brand-status {
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .new-chat {
+      border: 1px solid var(--border);
+      background: var(--panel2);
+      color: var(--text);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 22px;
+    }
+
+    .new-chat:active {
+      transform: scale(0.96);
+    }
+
+    .chat {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 18px 12px 20px;
+      scroll-behavior: smooth;
+    }
+
+    .welcome {
+      max-width: 500px;
+      margin: 40px auto 20px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .welcome-logo {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      display: grid;
+      place-items: center;
+      border-radius: 20px;
+      background: var(--accent);
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .welcome h1 {
+      margin: 0 0 8px;
+      font-size: 23px;
+    }
+
+    .welcome p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .message-row {
+      display: flex;
+      margin: 8px auto;
+      max-width: 760px;
+    }
+
+    .message-row.user {
+      justify-content: flex-end;
+    }
+
+    .message {
+      max-width: 88%;
+      padding: 11px 14px;
+      border-radius: 17px;
+      line-height: 1.5;
+      font-size: 15px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .message.user {
+      background: var(--user);
+      border-bottom-right-radius: 5px;
+    }
+
+    .message.assistant {
+      background: var(--assistant);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 5px;
+    }
+
+    .typing {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      height: 20px;
+    }
+
+    .typing span {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: blink 1.2s infinite;
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    .typing span:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    @keyframes blink {
+      0%,
+      60%,
+      100% {
+        opacity: 0.3;
+      }
+
+      30% {
+        opacity: 1;
+      }
+    }
+
+    .composer-area {
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+      padding: 9px 10px calc(9px + env(safe-area-inset-bottom));
+    }
+
+    .composer {
+      max-width: 760px;
+      margin: auto;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .input-wrap {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 5px 8px 5px 13px;
+    }
+
+    textarea {
+      width: 100%;
+      resize: none;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      max-height: 130px;
+      min-height: 28px;
+      line-height: 1.4;
+      padding: 5px 0;
+      font-size: 15px;
+    }
+
+    textarea::placeholder {
+      color: var(--muted);
+    }
+
+    .send {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .send:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .error {
+      color: var(--danger);
+      text-align: center;
+      font-size: 12px;
+      padding: 5px 10px 0;
+    }
+
+    .history-panel {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      background: rgba(0, 0, 0, 0.65);
+    }
+
+    .history-panel.open {
+      display: block;
+    }
+
+    .history-sheet {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      max-height: 75%;
+      overflow-y: auto;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      border-radius: 20px 20px 0 0;
+      padding: 15px;
+    }
+
+    .history-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .history-title strong {
+      font-size: 17px;
+    }
+
+    .close-history {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel2);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .conversation {
+      width: 100%;
+      text-align: left;
+      padding: 13px;
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: var(--panel2);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .conversation-title {
+      font-size: 14px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .conversation-date {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .history-button {
+      border: 1px solid var(--border);
+      background: var(--panel2);
+      color: var(--text);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    @media (max-width: 420px) {
+      .message {
+        max-width: 92%;
+      }
+
+      .welcome {
+        margin-top: 25px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">PX</div>
+
+        <div class="brand-text">
+          <div class="brand-name">Pk CloneX Team</div>
+          <div class="brand-status" id="statusText">AI Assistant</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button
+          type="button"
+          class="history-button"
+          id="historyButton"
+          aria-label="Chat history"
+        >
+          ☰
+        </button>
+
+        <button
+          type="button"
+          class="new-chat"
+          id="newChatButton"
+          aria-label="New chat"
+        >
+          +
+        </button>
+      </div>
+    </header>
+
+    <main class="chat" id="chat">
+
+      <section class="welcome" id="welcome">
+        <div class="welcome-logo">PX</div>
+        <h1>Pk CloneX Team</h1>
+        <p>
+          Your AI assistant. Ask anything and start a conversation.
+        </p>
+      </section>
+
+    </main>
+
+    <div class="error" id="error"></div>
+
+    <footer class="composer-area">
+      <form class="composer" id="composer">
+
+        <div class="input-wrap">
+          <textarea
+            id="messageInput"
+            rows="1"
+            maxlength="8000"
+            placeholder="Message Pk CloneX Team..."
+            autocomplete="off"
+          ></textarea>
+        </div>
+
+        <button
+          class="send"
+          id="sendButton"
+          type="submit"
+          aria-label="Send message"
+        >
+          ↑
+        </button>
+
+      </form>
+    </footer>
+
+  </div>
+
+  <!-- Conversation history -->
+  <div class="history-panel" id="historyPanel">
+
+    <div class="history-sheet">
+
+      <div class="history-title">
+        <strong>Chat History</strong>
+
+        <button
+          type="button"
+          class="close-history"
+          id="closeHistory"
+          aria-label="Close history"
+        >
+          ×
+        </button>
+      </div>
+
+      <div id="historyList"></div>
+
+    </div>
+
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      /*
+       * Your Vercel backend.
+       */
+      const BACKEND_URL =
+        "https://pk-clonex-backend.vercel.app";
+
+      const tg = window.Telegram?.WebApp;
+
+      if (tg) {
+        tg.ready();
+        tg.expand();
+
+        try {
+          tg.setHeaderColor("#0b0f14");
+          tg.setBackgroundColor("#0b0f14");
+        } catch (_) {}
+      }
+
+      const chat = document.getElementById("chat");
+      const welcome = document.getElementById("welcome");
+      const composer = document.getElementById("composer");
+      const input = document.getElementById("messageInput");
+      const sendButton = document.getElementById("sendButton");
+      const errorBox = document.getElementById("error");
+      const statusText = document.getElementById("statusText");
+
+      const historyButton =
+        document.getElementById("historyButton");
+
+      const historyPanel =
+        document.getElementById("historyPanel");
+
+      const closeHistory =
+        document.getElementById("closeHistory");
+
+      const historyList =
+        document.getElementById("historyList");
+
+      const newChatButton =
+        document.getElementById("newChatButton");
+
+      let conversationId = null;
+      let isSending = false;
+
+      /*
+       * Telegram user information.
+       *
+       * We use initData on the frontend.
+       * The backend can later verify this securely.
+       */
+      function getTelegramUser() {
+        const user = tg?.initDataUnsafe?.user;
+
+        if (!user?.id) {
+          return null;
+        }
+
+        return user;
+      }
+
+      const telegramUser = getTelegramUser();
+
+      if (telegramUser) {
+        const name =
+          telegramUser.first_name ||
+          telegramUser.username ||
+          "User";
+
+        statusText.textContent = `Hi, ${name}`;
+      }
+
+      function showError(message) {
+        errorBox.textContent = message;
+
+        setTimeout(() => {
+          if (errorBox.textContent === message) {
+            errorBox.textContent = "";
+          }
+        }, 5000);
+      }
+
+      function scrollToBottom() {
+        requestAnimationFrame(() => {
+          chat.scrollTop = chat.scrollHeight;
+        });
+      }
+
+      function addMessage(role, text) {
+        if (welcome) {
+          welcome.style.display = "none";
+        }
+
+        const row = document.createElement("div");
+        row.className = `message-row ${role}`;
+
+        const bubble = document.createElement("div");
+        bubble.className = `message ${role}`;
+        bubble.textContent = text;
+
+        row.appendChild(bubble);
+        chat.appendChild(row);
+
+        scrollToBottom();
+
+        return row;
+      }
+
+      function addTyping() {
+        if (welcome) {
+          welcome.style.display = "none";
+        }
+
+        const row = document.createElement("div");
+        row.className = "message-row assistant";
+        row.id = "typingMessage";
+
+        const bubble = document.createElement("div");
+        bubble.className = "message assistant";
+
+        const typing = document.createElement("div");
+        typing.className = "typing";
+
+        for (let i = 0; i < 3; i++) {
+          const dot = document.createElement("span");
+          typing.appendChild(dot);
+        }
+
+        bubble.appendChild(typing);
+        row.appendChild(bubble);
+        chat.appendChild(row);
+
+        scrollToBottom();
+      }
+
+      function removeTyping() {
+        document
+          .getElementById("typingMessage")
+          ?.remove();
+      }
+
+      function clearChat() {
+        chat.innerHTML = "";
+
+        const section = document.createElement("section");
+        section.className = "welcome";
+        section.id = "welcome";
+
+        section.innerHTML = `
+          <div class="welcome-logo">PX</div>
+          <h1>Pk CloneX Team</h1>
+          <p>
+            Your AI assistant. Ask anything and start a conversation.
+          </p>
+        `;
+
+        chat.appendChild(section);
+
+        conversationId = null;
+        errorBox.textContent = "";
+      }
+
+      function getUserId() {
+        return telegramUser?.id
+          ? String(telegramUser.id)
+          : null;
+      }
+
+      async function sendMessage(message) {
+        const userId = getUserId();
+
+        if (!userId) {
+          throw new Error(
+            "Please open this page inside the Telegram Mini App."
+          );
+        }
+
+        const response = await fetch(
+          `${BACKEND_URL}/api/chat`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              telegram_user_id: userId,
+              conversation_id: conversationId,
+              message
+            })
+          }
+        );
+
+        let data = null;
+
+        try {
+          data = await response.json();
+        } catch (_) {}
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error || "Backend request failed."
+          );
+        }
+
+        return data;
+      }
+
+      composer.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (isSending) return;
+
+        const message = input.value.trim();
+
+        if (!message) return;
+
+        input.value = "";
+        input.style.height = "auto";
+
+        addMessage("user", message);
+
+        isSending = true;
+        sendButton.disabled = true;
+        input.disabled = true;
+
+        addTyping();
+
+        try {
+          const data = await sendMessage(message);
+
+          removeTyping();
+
+          conversationId =
+            data.conversation_id || conversationId;
+
+          addMessage(
+            "assistant",
+            data.reply || "No response received."
+          );
+
+        } catch (error) {
+          removeTyping();
+
+          showError(
+            error?.message ||
+            "Something went wrong."
+          );
+
+        } finally {
+          isSending = false;
+          sendButton.disabled = false;
+          input.disabled = false;
+          input.focus();
+        }
+      });
+
+      input.addEventListener("input", () => {
+        input.style.height = "auto";
+
+        input.style.height =
+          Math.min(input.scrollHeight, 130) + "px";
+      });
+
+      input.addEventListener("keydown", (event) => {
+        if (
+          event.key === "Enter" &&
+          !event.shiftKey &&
+          window.innerWidth > 600
+        ) {
+          event.preventDefault();
+          composer.requestSubmit();
+        }
+      });
+
+      newChatButton.addEventListener("click", () => {
+        clearChat();
+        input.focus();
+      });
+
+      async function loadHistory() {
+        const userId = getUserId();
+
+        if (!userId) {
+          showError(
+            "Open the Mini App from Telegram to view your history."
+          );
+          return;
+        }
+
+        historyList.innerHTML =
+          '<div style="color:#8c98a6;padding:12px;">Loading...</div>';
+
+        historyPanel.classList.add("open");
+
+        try {
+          const response = await fetch(
+            `${BACKEND_URL}/api/history?telegram_user_id=${encodeURIComponent(userId)}`
+          );
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              data?.error || "Unable to load history."
+            );
+          }
+
+          historyList.innerHTML = "";
+
+          const conversations =
+            data.conversations || [];
+
+          if (!conversations.length) {
+            historyList.innerHTML =
+              '<div style="color:#8c98a6;padding:12px;">No saved conversations yet.</div>';
+
+            return;
+          }
+
+          conversations.forEach((conversation) => {
+            const button =
+              document.createElement("button");
+
+            button.type = "button";
+            button.className = "conversation";
+
+            const title =
+              conversation.title ||
+              "New conversation";
+
+            const date =
+              conversation.created_at
+                ? new Date(
+                    conversation.created_at
+                  ).toLocaleString()
+                : "";
+
+            button.innerHTML = `
+              <div class="conversation-title"></div>
+              <div class="conversation-date"></div>
+            `;
+
+            button
+              .querySelector(".conversation-title")
+              .textContent = title;
+
+            button
+              .querySelector(".conversation-date")
+              .textContent = date;
+
+            button.addEventListener(
+              "click",
+              () => {
+                openConversation(conversation);
+              }
+            );
+
+            historyList.appendChild(button);
+          });
+
+        } catch (error) {
+          historyList.innerHTML =
+            '<div style="color:#ef5350;padding:12px;"></div>';
+
+          historyList.firstElementChild.textContent =
+            error?.message ||
+            "Could not load history.";
+        }
+      }
+
+      function openConversation(conversation) {
+        clearChat();
+
+        conversationId = conversation.id;
+
+        const messages =
+          conversation.messages || [];
+
+        messages
+          .sort(
+            (a, b) =>
+              new Date(a.created_at) -
+              new Date(b.created_at)
+          )
+          .forEach((message) => {
+            if (
+              message.role === "user" ||
+              message.role === "assistant"
+            ) {
+              addMessage(
+                message.role,
+                message.content
+              );
+            }
+          });
+
+        historyPanel.classList.remove("open");
+        scrollToBottom();
+      }
+
+      historyButton.addEventListener(
+        "click",
+        loadHistory
+      );
+
+      closeHistory.addEventListener(
+        "click",
+        () => {
+          historyPanel.classList.remove("open");
+        }
+      );
+
+      historyPanel.addEventListener(
+        "click",
+        (event) => {
+          if (event.target === historyPanel) {
+            historyPanel.classList.remove("open");
+          }
+        }
+      );
+
+      /*
+       * Don't allow a normal browser visit to pretend
+       * to be a Telegram user.
+       */
+      if (!telegramUser) {
+        input.placeholder =
+          "Open this Mini App from Telegram...";
+      }
+    })();
+  </script>
+</body>
+  </html>
